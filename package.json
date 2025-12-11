@@ -1,0 +1,17 @@
+{
+  "name": "videocall-app",
+  "version": "1.0.0",
+  "description": "Simple 2-way video calling app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "selfsigned": "^5.2.0",
+    "socket.io": "^4.8.1"
+  }
+}

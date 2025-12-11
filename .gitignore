@@ -1,0 +1,5 @@
+node_modules
+.env
+lhr_key
+lhr_key.pub
+npm-debug.log

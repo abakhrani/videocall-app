@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Call App</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="join-screen">
+        <h1>Join a Call</h1>
+        <input type="text" id="roomInput" placeholder="Enter Room Name" value="default-room">
+        <button id="joinBtn">Join</button>
+    </div>
+
+    <div id="video-screen" class="hidden">
+        <div class="video-container">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <div class="controls">
+            <button id="muteBtn">Mute Audio</button>
+            <button id="cameraBtn">Stop Video</button>
+            <button id="leaveBtn" class="end-call">Leave</button>
+        </div>
+    </div>
+    <div id="debug-log"
+        style="position:fixed; top:0; left:0; background:rgba(0,0,0,0.7); color:lime; font-family:monospace; padding:10px; max-height:200px; overflow:auto; width:100%; pointer-events:none; z-index:9999;">
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+
+</html>
