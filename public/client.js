@@ -48,9 +48,14 @@ const toleranceInput = document.getElementById('tolerance');
 let processingInterval;
 
 // Show green screen controls only if URL has ?role=host
+// Show green screen controls only if URL has ?role=host
+const greenControls = document.getElementById('green-controls');
+greenControls.style.display = 'none'; // Ensure hidden by default
+
 const urlParams = new URLSearchParams(window.location.search);
+console.log("Checking role...", urlParams.get('role'));
 if (urlParams.get('role') === 'host') {
-    document.getElementById('green-controls').style.display = 'flex';
+    greenControls.style.display = 'flex';
 }
 
 greenBtn.addEventListener('click', () => {
