@@ -3,6 +3,8 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
+
+// Allow any origin for CORS to prevent connection blocking
 const io = new Server(server, {
     cors: {
         origin: "*",
@@ -16,27 +18,26 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
     console.log('a user connected', socket.id);
 
-    // Join a room (simple logic: everyone joins 'default-room' for now or a specific one)
+    // Join a room 
     socket.on('join', (room) => {
-        console.log(`Socket ${socket.id} joining room ${room}`);
-        socket.join(room);
-        // Determine if they are the initiator (first one in the room)
-        const roomSize = io.sockets.adapter.rooms.get(room)?.size || 0;
+        try {
+            console.log(`Socket ${socket.id} joining room ${room}`);
+            socket.join(room);
+            const roomSize = io.sockets.adapter.rooms.get(room)?.size || 0;
 
-        // Notify the client regarding their state (wait or ready)
-        // For 2 people, first is 'created', 2nd is 'joined' -> ready to call.
-        if (roomSize === 1) {
-            socket.emit('created');
-        } else {
-            socket.emit('joined');
-            // Tell everyone else in room that a new peer joined -> initiator should send offer
-            socket.to(room).emit('ready');
+            if (roomSize === 1) {
+                socket.emit('created');
+            } else {
+                socket.emit('joined');
+                socket.to(room).emit('ready');
+            }
+        } catch (err) {
+            console.error("Error in join handler:", err);
         }
     });
 
     // Signaling events
     socket.on('offer', (data) => {
-        // data contains { room: '...', offer: '...' }
         socket.to(data.room).emit('offer', data.offer);
     });
 
