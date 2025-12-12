@@ -47,8 +47,11 @@ const greenBtn = document.getElementById('greenBtn');
 const toleranceInput = document.getElementById('tolerance');
 let processingInterval;
 
-// Show green screen controls only to user (simple logic, or visible to all)
-document.getElementById('green-controls').style.display = 'flex';
+// Show green screen controls only if URL has ?role=host
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('role') === 'host') {
+    document.getElementById('green-controls').style.display = 'flex';
+}
 
 greenBtn.addEventListener('click', () => {
     isGreenScreenEnabled = !isGreenScreenEnabled;
