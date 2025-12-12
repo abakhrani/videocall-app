@@ -39,6 +39,92 @@ let roomName;
 let isAudioMuted = false;
 let isVideoStopped = false;
 
+// Chroma Key Variables
+let isGreenScreenEnabled = false;
+const processCanvas = document.getElementById('processCanvas');
+const ctx = processCanvas.getContext('2d', { willReadFrequently: true });
+const greenBtn = document.getElementById('greenBtn');
+const toleranceInput = document.getElementById('tolerance');
+let processingInterval;
+
+// Show green screen controls only to user (simple logic, or visible to all)
+document.getElementById('green-controls').style.display = 'flex';
+
+greenBtn.addEventListener('click', () => {
+    isGreenScreenEnabled = !isGreenScreenEnabled;
+    greenBtn.textContent = isGreenScreenEnabled ? 'Disable Green Screen' : 'Enable Green Screen';
+    greenBtn.style.background = isGreenScreenEnabled ? '#44ff44' : '';
+    greenBtn.style.color = isGreenScreenEnabled ? 'black' : 'white';
+
+    if (isGreenScreenEnabled) {
+        startProcessing();
+    } else {
+        stopProcessing();
+    }
+});
+
+function startProcessing() {
+    if (!localStream) return;
+
+    // Set canvas size to match video
+    const videoTrack = localStream.getVideoTracks()[0];
+    const settings = videoTrack.getSettings();
+    processCanvas.width = settings.width || 640;
+    processCanvas.height = settings.height || 480;
+
+    // Start loop
+    function loop() {
+        if (!isGreenScreenEnabled) return;
+
+        ctx.drawImage(localVideo, 0, 0, processCanvas.width, processCanvas.height);
+        const frame = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
+        const l = frame.data.length / 4;
+        const tol = parseInt(toleranceInput.value);
+
+        for (let i = 0; i < l; i++) {
+            const r = frame.data[i * 4 + 0];
+            const g = frame.data[i * 4 + 1];
+            const b = frame.data[i * 4 + 2];
+
+            // Green Screen Logic (Simple RGB check)
+            // If G is dominant and significantly brighter than R and B
+            if (g > r + tol && g > b + tol) {
+                // Turn to Black
+                frame.data[i * 4 + 0] = 0;
+                frame.data[i * 4 + 1] = 0;
+                frame.data[i * 4 + 2] = 0;
+                // Alpha 255 (Opaque)
+                frame.data[i * 4 + 3] = 255;
+            }
+        }
+        ctx.putImageData(frame, 0, 0);
+        requestAnimationFrame(loop);
+    }
+    loop();
+
+    // Replace the track being sent to peer
+    const canvasStream = processCanvas.captureStream(30);
+    const canvasTrack = canvasStream.getVideoTracks()[0];
+
+    if (peerConnection) {
+        const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+        if (sender) {
+            sender.replaceTrack(canvasTrack);
+        }
+    }
+}
+
+function stopProcessing() {
+    // Revert to original camera track
+    if (peerConnection && localStream) {
+        const originalTrack = localStream.getVideoTracks()[0];
+        const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+        if (sender) {
+            sender.replaceTrack(originalTrack);
+        }
+    }
+}
+
 // STUN servers configuration
 const rtcConfig = {
     iceServers: [
